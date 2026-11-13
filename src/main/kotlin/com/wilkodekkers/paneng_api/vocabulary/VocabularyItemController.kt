@@ -41,6 +41,7 @@ class VocabularyItemController(
     )
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun create(
         @PathVariable bookId: Long,
         @PathVariable chapterId: Long,

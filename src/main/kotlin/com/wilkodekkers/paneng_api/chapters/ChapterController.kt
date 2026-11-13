@@ -37,6 +37,7 @@ class ChapterController(
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     fun create(
         @PathVariable bookId: Long,
         @Valid @RequestBody request: CreateChapterRequest
