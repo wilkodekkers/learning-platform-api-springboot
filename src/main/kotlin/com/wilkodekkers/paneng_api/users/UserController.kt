@@ -1,0 +1,21 @@
+package com.wilkodekkers.paneng_api.users
+
+import com.wilkodekkers.paneng_api.security.CurrentUser
+import com.wilkodekkers.paneng_api.users.dto.UserResponse
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+@RequestMapping("/api/users")
+class UserController(
+    private val userService: UserService,
+    private val currentUser: CurrentUser
+) {
+    @GetMapping("/me")
+    fun me(@AuthenticationPrincipal jwt: Jwt): UserResponse {
+        return userService.findById(currentUser.getId())
+    }
+}
