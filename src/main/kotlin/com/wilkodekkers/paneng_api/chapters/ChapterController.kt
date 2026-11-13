@@ -3,6 +3,7 @@ package com.wilkodekkers.paneng_api.chapters
 import com.wilkodekkers.paneng_api.chapters.dto.ChapterResponse
 import com.wilkodekkers.paneng_api.chapters.dto.CreateChapterRequest
 import com.wilkodekkers.paneng_api.chapters.dto.UpdateChapterRequest
+import com.wilkodekkers.paneng_api.security.CurrentUser
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -23,15 +24,16 @@ import org.springframework.web.bind.annotation.RestController
 @SecurityRequirement(name = "bearerAuth")
 class ChapterController(
     private val chapterService: ChapterService,
+    private val currentUser: CurrentUser,
 ) {
     @GetMapping
     fun findAll(@PathVariable bookId: Long): List<ChapterResponse> {
-        return chapterService.findAll(bookId)
+        return chapterService.findAll(bookId, currentUser.getId())
     }
 
     @GetMapping("/{chapterId}")
     fun findById(@PathVariable bookId: Long, @PathVariable chapterId: Long): ChapterResponse {
-        return chapterService.findById(bookId, chapterId)
+        return chapterService.findById(bookId, chapterId, currentUser.getId())
     }
 
     @PostMapping
@@ -39,7 +41,7 @@ class ChapterController(
         @PathVariable bookId: Long,
         @Valid @RequestBody request: CreateChapterRequest
     ): ChapterResponse {
-        return chapterService.create(request, bookId)
+        return chapterService.create(request, bookId, currentUser.getId())
     }
 
     @PutMapping("/{chapterId}")
@@ -48,7 +50,7 @@ class ChapterController(
         @PathVariable chapterId: Long,
         @Valid @RequestBody request: UpdateChapterRequest
     ): ChapterResponse {
-        return chapterService.update(bookId, chapterId, request)
+        return chapterService.update(bookId, chapterId, request, currentUser.getId())
     }
 
     @DeleteMapping("/{chapterId}")
@@ -57,6 +59,6 @@ class ChapterController(
         @PathVariable bookId: Long,
         @PathVariable chapterId: Long,
     ) {
-        chapterService.delete(bookId, chapterId)
+        chapterService.delete(bookId, chapterId, currentUser.getId())
     }
 }

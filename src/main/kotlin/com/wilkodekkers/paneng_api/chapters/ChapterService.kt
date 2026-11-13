@@ -17,36 +17,30 @@ class ChapterService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(bookId: Long): List<ChapterResponse> {
-        if (!bookRepository.existsById(bookId)) {
-            throw NotFoundException("Book with ID $bookId not found")
-        }
+    fun findAll(bookId: Long, userId: Long): List<ChapterResponse> {
+        findBookByIdAndUserId(bookId, userId)
 
         return chapterRepository
-            .findAllByBookIdOrderByPositionAsc(bookId)
+            .findAllByBookIdAndBookUserIdOrderByPositionAsc(bookId, userId)
             .map { it.toResponse() }
     }
 
     @Transactional(readOnly = true)
-    fun findById(bookId: Long, chapterId: Long): ChapterResponse {
-        if (!bookRepository.existsById(bookId)) {
-            throw NotFoundException("Book with ID $bookId not found")
-        }
-
-        val chapter = findChapter(bookId, chapterId)
-
-        return chapter.toResponse()
+    fun findById(
+        bookId: Long,
+        chapterId: Long,
+        userId: Long
+    ): ChapterResponse {
+        return findChapter(bookId, chapterId, userId).toResponse()
     }
 
     @Transactional
     fun create(
         request: CreateChapterRequest,
-        bookId: Long
+        bookId: Long,
+        userId: Long
     ): ChapterResponse {
-        val book = bookRepository.findById(bookId)
-            .orElseThrow {
-                NotFoundException("Book with ID $bookId not found")
-            }
+        val book = findBookByIdAndUserId(bookId, userId)
 
         if (chapterRepository.existsByBookIdAndPosition(bookId, request.position)) {
             throw ConflictException(
@@ -67,13 +61,10 @@ class ChapterService(
     fun update(
         bookId: Long,
         chapterId: Long,
-        request: UpdateChapterRequest
+        request: UpdateChapterRequest,
+        userId: Long
     ): ChapterResponse {
-        if (!bookRepository.existsById(bookId)) {
-            throw NotFoundException("Book with ID $bookId not found")
-        }
-
-        val chapter = findChapter(bookId, chapterId)
+        val chapter = findChapter(bookId, chapterId, userId)
 
         if (chapterRepository.existsByBookIdAndPositionAndIdNot(
                 bookId,
@@ -94,21 +85,29 @@ class ChapterService(
     }
 
     @Transactional
-    fun delete(bookId: Long, chapterId: Long) {
-        if (!bookRepository.existsById(bookId)) {
-            throw NotFoundException("Book with ID $bookId not found")
-        }
-
-        val chapter = findChapter(bookId, chapterId)
-
+    fun delete(bookId: Long, chapterId: Long, userId: Long) {
+        val chapter = findChapter(bookId, chapterId, userId)
         chapterRepository.delete(chapter)
     }
 
-    private fun findChapter(bookId: Long, chapterId: Long): Chapter {
-        return chapterRepository.findByIdAndBookId(chapterId, bookId)
-            ?: throw NotFoundException(
-                "Chapter with ID $chapterId not found in book with ID $bookId"
-            )
+    private fun findBookByIdAndUserId(bookId: Long, userId: Long) =
+        bookRepository.findByIdAndUserId(bookId, userId)
+            .orElseThrow {
+                NotFoundException("Book with ID $bookId not found")
+            }
+
+    private fun findChapter(
+        bookId: Long,
+        chapterId: Long,
+        userId: Long
+    ): Chapter {
+        return chapterRepository.findByIdAndBookIdAndBookUserId(
+            chapterId,
+            bookId,
+            userId
+        ) ?: throw NotFoundException(
+            "Chapter with ID $chapterId not found in book with ID $bookId"
+        )
     }
 
     private fun Chapter.toResponse() = ChapterResponse(
