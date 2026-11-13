@@ -1,9 +1,10 @@
 package com.wilkodekkers.paneng_api.chapters
 
-import com.wilkodekkers.paneng_api.books.BookService
 import com.wilkodekkers.paneng_api.chapters.dto.ChapterResponse
 import com.wilkodekkers.paneng_api.chapters.dto.CreateChapterRequest
 import com.wilkodekkers.paneng_api.chapters.dto.UpdateChapterRequest
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -18,9 +19,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/books/{bookId}/chapters")
+@Tag(name = "Chapters", description = "Endpoints for book chapters")
+@SecurityRequirement(name = "bearerAuth")
 class ChapterController(
     private val chapterService: ChapterService,
-    private val bookService: BookService,
 ) {
     @GetMapping
     fun findAll(@PathVariable bookId: Long): List<ChapterResponse> {
